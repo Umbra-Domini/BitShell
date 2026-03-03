@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitShell</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="terminal-header">
+            <div class="terminal-dots">
+                <div class="dot close"></div>
+                <div class="dot minimize"></div>
+                <div class="dot maximize"></div>
+            </div>
+            <div class="terminal-title">BitShell</div>
+            <button id="popout-btn" class="history-toggle" data-tooltip="Pop out to resizable window">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M1.5 1h5a.5.5 0 0 1 0 1H2v11h11v-4.5a.5.5 0 0 1 1 0V13.5A1.5 1.5 0 0 1 12.5 15h-11A1.5 1.5 0 0 1 0 13.5v-11A1.5 1.5 0 0 1 1.5 1z"/>
+                    <path fill-rule="evenodd" d="M14.854 1.146a.5.5 0 0 1 0 .708l-8 8a.5.5 0 0 1-.708-.708l8-8a.5.5 0 0 1 .708 0z"/>
+                    <path d="M9 1.5A.5.5 0 0 1 9.5 1H15a.5.5 0 0 1 .5.5V7a.5.5 0 0 1-1 0V2H9.5A.5.5 0 0 1 9 1.5z"/>
+                </svg>
+            </button>
+            <button id="settings-toggle" class="history-toggle" data-tooltip="Settings">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path
+                        d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z" />
+                    <path
+                        d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z" />
+                </svg>
+            </button>
+            <button id="history-toggle" class="history-toggle" data-tooltip="History">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3zM1 8a7 7 0 1 1 14 0A7 7 0 0 1 1 8z" />
+                    <path d="M8 4.5a.5.5 0 0 1 .5.5v3.5H11a.5.5 0 0 1 0 1H8a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="main-wrapper">
+
+            <div class="content-wrapper">
+
+                <div class="input-section">
+                    <div class="input-label">Input Type</div>
+
+
+                    <div class="type-selector">
+                        <button class="type-btn active" data-type="binary">
+                            <span class="type-icon">01</span>
+                            <span class="type-name">Binary</span>
+                        </button>
+                        <button class="type-btn" data-type="hex">
+                            <span class="type-icon">0x</span>
+                            <span class="type-name">Hex</span>
+                        </button>
+                        <button class="type-btn" data-type="decimal">
+                            <span class="type-icon">10</span>
+                            <span class="type-name">Decimal</span>
+                        </button>
+                        <button class="type-btn" data-type="text">
+                            <span class="type-icon">Aa</span>
+                            <span class="type-name">Text</span>
+                        </button>
+                        <button class="type-btn" data-type="base64">
+                            <span class="type-icon">64</span>
+                            <span class="type-name">Base64</span>
+                        </button>
+                    </div>
+
+                    <textarea id="input" placeholder="Enter binary value (e.g., 1010, 11110000)..."
+                        maxlength="100000"></textarea>
+                    <div class="input-info">
+                        <span id="char-count" class="char-count">0 / 100,000 chars</span>
+                        <span id="bit-count" class="bit-count">0 bits</span>
+                        <span id="byte-count" class="byte-count">0 bytes</span>
+                        <span id="detection-badge" class="detection-badge"></span>
+                    </div>
+
+                    <div class="input-hint" id="input-hint">
+                        <span class="hint-icon">💡</span>
+                        <span class="hint-text">Enter binary digits (0 and 1 only)</span>
+                    </div>
+
+                    <div class="status-message" id="status-message"></div>
+
+
+                    <div class="actions">
+                        <button id="copy-all-btn" class="action-btn action-btn-primary">copy all</button>
+                        <button id="clear-btn" class="action-btn">clear</button>
+                    </div>
+                </div>
+
+
+                <div class="conversions" id="conversions">
+                    <div class="conversion-item">
+                        <div class="conversion-header">
+                            <label>Binary</label>
+                            <button class="copy-btn" data-target="binary-output">copy</button>
+                        </div>
+                        <div class="conversion-output-wrapper">
+                            <div class="conversion-output empty" id="binary-output">No input</div>
+                            <div class="scroll-indicator" id="binary-scroll-indicator">
+                                <span>▼ Scroll for more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conversion-item">
+                        <div class="conversion-header">
+                            <label>Hexadecimal</label>
+                            <button class="copy-btn" data-target="hex-output">copy</button>
+                        </div>
+                        <div class="conversion-output-wrapper">
+                            <div class="conversion-output empty" id="hex-output">No input</div>
+                            <div class="scroll-indicator" id="hex-scroll-indicator">
+                                <span>▼ Scroll for more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conversion-item">
+                        <div class="conversion-header">
+                            <label>Decimal</label>
+                            <button class="copy-btn" data-target="decimal-output">copy</button>
+                        </div>
+                        <div class="conversion-output-wrapper">
+                            <div class="conversion-output empty" id="decimal-output">No input</div>
+                            <div class="scroll-indicator" id="decimal-scroll-indicator">
+                                <span>▼ Scroll for more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conversion-item">
+                        <div class="conversion-header">
+                            <label>Text (UTF-8)</label>
+                            <button class="copy-btn" data-target="text-output">copy</button>
+                        </div>
+                        <div class="conversion-output-wrapper">
+                            <div class="conversion-output empty" id="text-output">No input</div>
+                            <div class="scroll-indicator" id="text-scroll-indicator">
+                                <span>▼ Scroll for more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conversion-item">
+                        <div class="conversion-header">
+                            <label>Base64</label>
+                            <button class="copy-btn" data-target="base64-output">copy</button>
+                        </div>
+                        <div class="conversion-output-wrapper">
+                            <div class="conversion-output empty" id="base64-output">No input</div>
+                            <div class="scroll-indicator" id="base64-scroll-indicator">
+                                <span>▼ Scroll for more</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="history-sidebar" id="history-sidebar">
+                <div class="history-header">
+                    <h3>History</h3>
+                    <button id="clear-history" class="clear-history-btn" data-tooltip="Clear all">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path
+                                d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <div class="history-empty">No conversion history yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Sidebar -->
+        <div class="settings-sidebar" id="settings-sidebar">
+            <div class="settings-header">
+                <h3>Settings</h3>
+                <button id="close-settings" class="close-settings-btn" data-tooltip="Close Settings">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                        <path
+                            d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-content">
+                <!-- APPEARANCE Section -->
+                <div class="settings-section-header">
+                    <span class="section-title">Appearance</span>
+                </div>
+
+                <!-- Font Size -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Font Size
+                        <button class="info-tooltip" data-tooltip="Adjust the size of text">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control">
+                        <button class="setting-btn" id="font-decrease" data-tooltip="Decrease">
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" />
+                            </svg>
+                        </button>
+                        <span class="setting-value" id="font-size-value">13px</span>
+                        <button class="setting-btn" id="font-increase" data-tooltip="Increase">
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                <path
+                                    d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-separator"></div>
+
+                <!-- OUTPUT FORMATTING Section -->
+                <div class="settings-section-header">
+                    <span class="section-title">Output Formatting</span>
+                </div>
+
+                <!-- Show Prefixes -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Show Prefixes (0x, 0b)
+                        <button class="info-tooltip" data-tooltip="Display Prefixes">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-prefixes-toggle" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="setting-status" id="show-prefixes-status">Disabled</span>
+                    </div>
+                </div>
+
+                <!-- Hex Case -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Hexadecimal Case
+                        <button class="info-tooltip" data-tooltip="Choose (A-F) or (a-f) for hex letters">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control-radios">
+                        <label class="radio-option">
+                            <input type="radio" name="hex-case" value="upper" checked />
+                            <span>Uppercase (A-F)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="hex-case" value="lower" />
+                            <span>Lowercase (a-f)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Binary Grouping -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Binary Grouping
+                        <button class="info-tooltip" data-tooltip="Group by (4), (8), or (16)">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control-radios">
+                        <label class="radio-option">
+                            <input type="radio" name="binary-grouping" value="none" checked />
+                            <span>None</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="binary-grouping" value="4" />
+                            <span>4-bit (Nibble)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="binary-grouping" value="8" />
+                            <span>8-bit (Byte)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="binary-grouping" value="16" />
+                            <span>16-bit (Word)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Hex Grouping -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Hex Grouping
+                        <button class="info-tooltip" data-tooltip="Group hex by byte size">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control-radios">
+                        <label class="radio-option">
+                            <input type="radio" name="hex-grouping" value="none" checked />
+                            <span>None</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="hex-grouping" value="1" />
+                            <span>1 Byte</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="hex-grouping" value="2" />
+                            <span>2 Bytes</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="hex-grouping" value="4" />
+                            <span>4 Bytes</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Show Leading Zeros -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Show Leading Zeros
+                        <button class="info-tooltip" data-tooltip="Pad to byte boundary">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-leading-zeros-toggle" />
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="setting-status" id="show-leading-zeros-status">Disabled</span>
+                    </div>
+                </div>
+
+                <div class="settings-separator"></div>
+
+                <!-- COUNTERS Section -->
+                <div class="settings-section-header">
+                    <span class="section-title">Counters</span>
+                </div>
+
+                <!-- Show Bit Counter -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Show Bit Counter
+                        <button class="info-tooltip" data-tooltip="Display bit count below input">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-bit-counter-toggle" checked />
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="setting-status" id="show-bit-counter-status">Enabled</span>
+                    </div>
+                </div>
+
+                <!-- Show Byte Counter -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        Show Byte Counter
+                        <button class="info-tooltip" data-tooltip="Display byte count below input">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-byte-counter-toggle" checked />
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="setting-status" id="show-byte-counter-status">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="settings-separator"></div>
+
+
+
+
+
+                <!-- HISTORY Section -->
+                <div class="settings-section-header">
+                    <span class="section-title">History</span>
+                </div>
+
+                <!-- History Tracking -->
+                <div class="setting-group">
+                    <label class="setting-label">
+                        History Tracking
+                        <button class="info-tooltip" data-tooltip="Save copied results to history">
+                            <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                <path
+                                    d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" />
+                            </svg>
+                        </button>
+                    </label>
+                    <div class="setting-control">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="history-tracking-toggle" checked />
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="setting-status" id="history-tracking-status">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="settings-separator"></div>
+
+                <!-- Reset Settings -->
+                <div class="setting-group">
+                    <button class="reset-settings-btn" id="reset-settings">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+                            <path
+                                d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+                        </svg>
+                        Reset to Defaults
+                    </button>
+                </div>
+
+                <!-- Privacy Policy Link -->
+                <div class="setting-group" style="margin-top: 20px;">
+                    <a href="privacy.html" target="_blank" class="privacy-link">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 6px;">
+                            <path
+                                d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+                        </svg>
+                        Privacy Policy
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <span class="modal-title">Confirm Action</span>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-message">Are you sure?</p>
+                </div>
+                <div class="modal-actions">
+                    <button id="modal-cancel" class="modal-btn modal-btn-secondary">Cancel</button>
+                    <button id="modal-confirm" class="modal-btn modal-btn-danger">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="/js/converter.js"></script>
+        <script src="/js/popup.js"></script>
+</body>
+
+</html>
