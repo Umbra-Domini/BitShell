@@ -124,13 +124,12 @@ BitShell will appear in your extensions list and toolbar.
 BitShell/
 ├── manifest.json
 ├── popup.html
+├── popup.css
 ├── privacy.html
 ├── js/
 │   ├── background.js
 │   ├── popup.js
 │   └── converter.js
-├── css/
-│   └── popup.css
 └── icons/
     ├── icon16.png
     ├── icon32.png
