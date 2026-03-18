@@ -147,7 +147,7 @@ BitShell/
 | `storage` | Saves conversion history and settings locally |
 | `clipboardWrite` | Enables one-click copy of conversion results |
 
-BitShell does **not** collect, transmit, or share any data. Everything stays local in your browser. See [`privacy.html`](privacy.html) for the full privacy policy.
+BitShell does **not** collect, transmit, or share any data. Everything stays local in your browser. See [`privacy.html`](chrome-extension://ekccllhkobdjemdinnbdopagcdjglohf/privacy.html) for the full privacy policy.
 
 ---
 
