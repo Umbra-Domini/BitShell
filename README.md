@@ -72,7 +72,7 @@ BitShell opens as a resizable popup window with macOS-style window controls — 
 
 Install BitShell directly from the Chrome Web Store — no setup required:
 
-👉 **[Install on the Chrome Web Store](https://chromewebstore.google.com/detail/ekccllhkobdjemdinnbdopagcdjglohf?utm_source=item-share-cb)** *(link coming soon)*
+👉 **[Install on the Chrome Web Store](https://chromewebstore.google.com/detail/ekccllhkobdjemdinnbdopagcdjglohf?utm_source=item-share-cb)** 
 
 Once installed, click the BitShell icon in your toolbar or right-click selected text on any page to get started.
 
