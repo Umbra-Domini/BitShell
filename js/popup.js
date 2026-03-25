@@ -107,6 +107,7 @@
         inputField.value = result.pendingInput;
         inputField.focus();
         updateCharCount();
+        detectSpecialFormat();
         performConversion();
         chrome.storage.local.remove('pendingInput');
       } else {
@@ -299,25 +300,43 @@
     });
   }
 
+  function showSubnetCards(show) {
+    document.querySelectorAll('.conversion-item:not(.subnet-card)').forEach(el => { el.style.display = show ? 'none' : ''; });
+    document.querySelectorAll('.subnet-card').forEach(el => { el.style.display = show ? '' : 'none'; });
+  }
+
   function detectSpecialFormat() {
     const input = inputField.value.trim();
 
     if (!input) {
       hideDetectionBadge();
+      showSubnetCards(false);
       return false;
+    }
+
+    if (Converter.isCIDR(input)) {
+      showDetectionBadge('CIDR Detected');
+      showSubnetCards(true);
+      inputHint.querySelector('.hint-icon').textContent = '🌐';
+      inputHint.querySelector('.hint-text').textContent = 'IPv4 CIDR notation detected — showing subnet breakdown';
+      return true;
     }
 
     if (Converter.isIPv4(input)) {
       showDetectionBadge('IPv4 Detected');
+      showSubnetCards(false);
       return true;
     }
 
     if (Converter.isIPv6(input)) {
       showDetectionBadge('IPv6 Detected');
+      showSubnetCards(false);
       return true;
     }
 
     hideDetectionBadge();
+    showSubnetCards(false);
+    updateHint();
     return false;
   }
 
@@ -390,8 +409,11 @@
     let bits = 0;
 
     try {
-      // Check for IP addresses first (they have fixed sizes)
-      if (Converter.isIPv4(input)) {
+      // Check for CIDR first
+      if (Converter.isCIDR(input)) {
+        bits = 32;
+        bytes = 4;
+      } else if (Converter.isIPv4(input)) {
         // IPv4 is always 32 bits / 4 bytes
         bits = 32;
         bytes = 4;
@@ -510,6 +532,31 @@
     if (!input) {
       clearOutputs();
       hideStatus();
+      return;
+    }
+
+    // Invalid CIDR attempt (e.g. 192.168.1.1/33) — show helpful error before normal converter runs
+    if (Converter.isCIDRAttempt(input)) {
+      showStatus('Invalid CIDR notation. Prefix must be 0–32 and IP must be a valid IPv4 address.', true);
+      return;
+    }
+
+    // Subnet calculator mode — auto-detected from CIDR input
+    if (Converter.isCIDR(input)) {
+      const snIds = ['sn-ip-binary','sn-mask-binary','sn-mask-decimal','sn-network',
+                     'sn-broadcast','sn-first-host','sn-last-host','sn-num-addresses','sn-max-hosts'];
+      try {
+        const result = Converter.calculateSubnet(input);
+        const values = [result.ipBinary, result.maskBinary, result.maskDecimal,
+                        result.networkAddress, result.broadcastAddress,
+                        result.firstHost, result.lastHost,
+                        result.numAddresses, result.maxHosts];
+        snIds.forEach((id, i) => updateOutput(document.getElementById(id), { value: values[i], error: null }));
+        hideStatus();
+      } catch (e) {
+        showStatus(e.message, true);
+        snIds.forEach(id => updateOutput(document.getElementById(id), { value: '', error: null }));
+      }
       return;
     }
 
@@ -774,6 +821,11 @@
       output.classList.add('empty');
       output.classList.remove('error');
     });
+    ['sn-ip-binary','sn-mask-binary','sn-mask-decimal','sn-network','sn-broadcast',
+     'sn-first-host','sn-last-host','sn-num-addresses','sn-max-hosts'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = 'No input'; el.classList.add('empty'); el.classList.remove('error'); }
+    });
     updateScrollIndicators();
     
     // Hide counters when no input
@@ -824,17 +876,24 @@
         const input = inputField.value.trim();
         if (input) {
           try {
-            // Determine actual input type (accounting for IP addresses)
-            let actualInputType = currentInputType;
-            if (Converter.isIPv4(input) || Converter.isIPv6(input)) {
-              actualInputType = 'text';
+            if (Converter.isCIDR(input)) {
+              const snResult = Converter.calculateSubnet(input);
+              addToHistory(input, 'subnet', {
+                binary:  { value: snResult.ipBinary },
+                hex:     { value: snResult.maskDecimal },
+                decimal: { value: snResult.numAddresses },
+                text:    { value: snResult.networkAddress + ' – ' + snResult.broadcastAddress },
+                base64:  { value: '' }
+              });
+            } else {
+              let actualInputType = currentInputType;
+              if (Converter.isIPv4(input) || Converter.isIPv6(input)) {
+                actualInputType = 'text';
+              }
+              const results = Converter.convertAll(input, actualInputType);
+              addToHistory(input, currentInputType, results);
             }
-            
-            // Get current conversion results
-            const results = Converter.convertAll(input, actualInputType);
-            addToHistory(input, currentInputType, results);
           } catch (error) {
-            // Silently fail if conversion errors - user already has the copied value
             console.error('Failed to add to history:', error);
           }
         }
@@ -857,16 +916,28 @@
     const outputs = [];
     
     const addOutput = (label, element) => {
-      if (!element.classList.contains('empty') && !element.classList.contains('error')) {
+      if (element && !element.classList.contains('empty') && !element.classList.contains('error')) {
         outputs.push(`${label}: ${element.textContent}`);
       }
     };
 
-    addOutput('Binary', binaryOutput);
-    addOutput('Hex', hexOutput);
-    addOutput('Decimal', decimalOutput);
-    addOutput('Text', textOutput);
-    addOutput('Base64', base64Output);
+    if (Converter.isCIDR(input)) {
+      addOutput('IP in Binary',        document.getElementById('sn-ip-binary'));
+      addOutput('Subnet Mask Binary',  document.getElementById('sn-mask-binary'));
+      addOutput('Subnet Mask Decimal', document.getElementById('sn-mask-decimal'));
+      addOutput('Network Address',     document.getElementById('sn-network'));
+      addOutput('Broadcast Address',   document.getElementById('sn-broadcast'));
+      addOutput('First Host',          document.getElementById('sn-first-host'));
+      addOutput('Last Host',           document.getElementById('sn-last-host'));
+      addOutput('Number of Addresses', document.getElementById('sn-num-addresses'));
+      addOutput('Max Hosts',           document.getElementById('sn-max-hosts'));
+    } else {
+      addOutput('Binary',  binaryOutput);
+      addOutput('Hex',     hexOutput);
+      addOutput('Decimal', decimalOutput);
+      addOutput('Text',    textOutput);
+      addOutput('Base64',  base64Output);
+    }
 
     if (outputs.length === 0) {
       showStatus('No valid outputs to copy', true);
@@ -890,17 +961,24 @@
       // Add to history when user copies all
       if (input) {
         try {
-          // Determine actual input type (accounting for IP addresses)
-          let actualInputType = currentInputType;
-          if (Converter.isIPv4(input) || Converter.isIPv6(input)) {
-            actualInputType = 'text';
+          if (Converter.isCIDR(input)) {
+            const snResult = Converter.calculateSubnet(input);
+            addToHistory(input, 'subnet', {
+              binary:  { value: snResult.ipBinary },
+              hex:     { value: snResult.maskDecimal },
+              decimal: { value: snResult.numAddresses },
+              text:    { value: snResult.networkAddress + ' – ' + snResult.broadcastAddress },
+              base64:  { value: '' }
+            });
+          } else {
+            let actualInputType = currentInputType;
+            if (Converter.isIPv4(input) || Converter.isIPv6(input)) {
+              actualInputType = 'text';
+            }
+            const results = Converter.convertAll(input, actualInputType);
+            addToHistory(input, currentInputType, results);
           }
-          
-          // Get current conversion results
-          const results = Converter.convertAll(input, actualInputType);
-          addToHistory(input, currentInputType, results);
         } catch (error) {
-          // Silently fail if conversion errors - user already has the copied value
           console.error('Failed to add to history:', error);
         }
       }
@@ -936,6 +1014,8 @@
     clearOutputs();
     hideStatus();
     hideDetectionBadge();
+    showSubnetCards(false);
+    updateHint();
     inputField.focus();
     showTempStatus('Input cleared');
   }
@@ -1027,7 +1107,9 @@
   function loadHistoryItem(id) {
     const entry = history.find(h => h.id === parseInt(id));
     if (entry) {
-      selectInputType(entry.type);
+      if (entry.type !== 'subnet') {
+        selectInputType(entry.type);
+      }
       inputField.value = entry.input;
       updateCharCount();
       detectSpecialFormat();

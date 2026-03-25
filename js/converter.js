@@ -1021,13 +1021,90 @@ const Converter = (() => {
     return result;
   }
 
+  function isCIDR(input) {
+    const trimmed = input.trim();
+    const match = trimmed.match(/^(\d+\.\d+\.\d+\.\d+)\/(\d+)$/);
+    if (!match) return false;
+    const prefix = parseInt(match[2], 10);
+    return isIPv4(match[1]) && prefix >= 0 && prefix <= 32;
+  }
+
+  function isCIDRAttempt(input) {
+    // Looks like a CIDR attempt but is invalid (e.g. /33, bad IP)
+    return /^[\d.]+\/\d+$/.test(input.trim()) && !isCIDR(input);
+  }
+
+  function calculateSubnet(cidr) {
+    const match = cidr.trim().match(/^(\d+\.\d+\.\d+\.\d+)\/(\d+)$/);
+    if (!match) {
+      throw new Error('Invalid CIDR notation. Use format: 192.168.1.1/24');
+    }
+
+    const ip = match[1];
+    const prefix = parseInt(match[2], 10);
+
+    if (!isIPv4(ip)) {
+      throw new Error('Invalid IPv4 address');
+    }
+    if (prefix < 0 || prefix > 32) {
+      throw new Error('Prefix length must be between 0 and 32');
+    }
+
+    // Parse IP octets
+    const octets = ip.split('.').map(Number);
+
+    // Convert IP to 32-bit integer
+    const ipInt = (octets[0] << 24 | octets[1] << 16 | octets[2] << 8 | octets[3]) >>> 0;
+
+    // Build mask as 32-bit integer
+    const maskInt = prefix === 0 ? 0 : (0xFFFFFFFF << (32 - prefix)) >>> 0;
+
+    // Network and broadcast
+    const networkInt   = (ipInt & maskInt) >>> 0;
+    const broadcastInt = (networkInt | (~maskInt >>> 0)) >>> 0;
+
+    // Helper: int to dotted decimal
+    function intToIP(n) {
+      return [n >>> 24, (n >>> 16) & 0xFF, (n >>> 8) & 0xFF, n & 0xFF].join('.');
+    }
+
+    // Helper: int to dotted binary (4 octets, space-separated)
+    function intToBinaryDotted(n) {
+      return [n >>> 24, (n >>> 16) & 0xFF, (n >>> 8) & 0xFF, n & 0xFF]
+        .map(o => o.toString(2).padStart(8, '0'))
+        .join('.');
+    }
+
+    const numAddresses = Math.pow(2, 32 - prefix);
+    const maxHosts = prefix >= 31 ? (prefix === 32 ? 1 : 2) : numAddresses - 2;
+
+    // First/last host (for /31 and /32, special cases)
+    const firstHostInt = prefix >= 31 ? networkInt : networkInt + 1;
+    const lastHostInt  = prefix >= 31 ? broadcastInt : broadcastInt - 1;
+
+    return {
+      ipBinary:         intToBinaryDotted(ipInt),
+      maskBinary:       intToBinaryDotted(maskInt),
+      maskDecimal:      intToIP(maskInt),
+      networkAddress:   intToIP(networkInt),
+      broadcastAddress: intToIP(broadcastInt),
+      firstHost:        intToIP(firstHostInt),
+      lastHost:         intToIP(lastHostInt),
+      numAddresses:     numAddresses.toLocaleString(),
+      maxHosts:         maxHosts.toLocaleString()
+    };
+  }
+
   return {
     InputType,
     convertAll,
     isIPv4,
     isIPv6,
+    isCIDR,
+    isCIDRAttempt,
     groupBinary,
-    groupHex
+    groupHex,
+    calculateSubnet
   };
 })();
 
