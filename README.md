@@ -4,10 +4,10 @@
 
 # BitShell
 
-**A fast, developer-focused binary, hex, decimal, text & Base64 converter with smart format detection, history, and one-click copy**
+**A fast, developer-focused binary, hex, decimal, text & Base64 converter with smart format detection, IPv4 subnet calculator, history, and one-click copy**
 
 ![Manifest Version](https://img.shields.io/badge/Manifest-v3-blue?style=flat-square)
-![Version](https://img.shields.io/badge/Version-1.0.5-brightgreen?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.0.6-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 ![Platform](https://img.shields.io/badge/Chrome%20%7C%20Edge%20%7C%20Brave-supported-orange?style=flat-square)
 
@@ -17,14 +17,14 @@
 
 ## What is BitShell?
 
-BitShell is a browser extension built for developers, students, and anyone who regularly works with number systems. Type or paste any value — binary, hex, decimal, text, or Base64 — and instantly see every other representation side by side. It also supports IPv4 and IPv6 addresses, with full conversion across all formats.
+BitShell is a browser extension built for developers, students, and anyone who regularly works with number systems. Type or paste any value — binary, hex, decimal, text, or Base64 — and instantly see every other representation side by side. It also supports IPv4 and IPv6 addresses with full conversion across all formats, and automatically performs a full subnet breakdown when it detects CIDR notation.
 
 ---
 
 ## Features
 
 ### ⚡ Smart Format Detection
-BitShell automatically detects what you're typing — binary, hex, decimal, text, or Base64 — and shows a detection badge in real time so you always know what format is being used.
+BitShell automatically detects what you're typing — binary, hex, decimal, text, Base64, IPv4, IPv6, or CIDR notation — and shows a detection badge in real time so you always know what format is being used.
 
 ### 🔄 Full Format Conversion
 Every input is simultaneously converted to all five formats:
@@ -35,7 +35,24 @@ Every input is simultaneously converted to all five formats:
 - **Base64** ↔ Binary, Hex, Decimal, Text
 
 ### 🌐 IPv4 & IPv6 Support
-Enter an IPv4 or IPv6 address in the decimal field and BitShell converts it to binary, hex, and its 32-bit or 128-bit decimal integer representation automatically.
+Enter an IPv4 or IPv6 address and BitShell converts it to binary, hex, and its 32-bit or 128-bit decimal integer representation automatically.
+
+### 🔢 IPv4 Subnet / CIDR Calculator
+Type any IPv4 address in CIDR notation (e.g. `14.12.72.8/24`) and BitShell automatically detects it and instantly shows a full subnet breakdown — no extra tab or button needed:
+
+| Field | Example |
+|---|---|
+| **IP Address in Binary** | `00001110.00001100.01001000.00001000` |
+| **Subnet Mask in Binary** | `11111111.11111111.11111111.00000000` |
+| **Subnet Mask in Decimal** | `255.255.255.0` |
+| **Network Address** | `14.12.72.0` |
+| **Broadcast Address** | `14.12.72.255` |
+| **First Host** | `14.12.72.1` |
+| **Last Host** | `14.12.72.254` |
+| **Number of Addresses** | `256` |
+| **Max Hosts** | `254` |
+
+All fields support one-click copy individually, or use **Copy All** to grab everything at once. Subnet calculations are also saved to history.
 
 ### 📋 One-Click Copy
 Copy any individual output with a single click, or use **Copy All** to copy every result at once.
@@ -59,7 +76,7 @@ Open the Settings sidebar to customize how results are displayed:
 | **History Tracking** | Enable or disable conversion history |
 
 ### 🖱️ Right-Click Context Menu
-Select any text on any webpage, right-click, and choose **BitShell** to instantly open the converter pre-loaded with your selected text.
+Select any text on any webpage, right-click, and choose **BitShell** to instantly open the converter pre-loaded with your selected text. Works with CIDR addresses too.
 
 ### 🪟 Window Controls
 BitShell opens as a resizable popup window with macOS-style window controls — minimize, maximize, and close. Use the **popout button** to open a second independent window.
@@ -72,7 +89,7 @@ BitShell opens as a resizable popup window with macOS-style window controls — 
 
 Install BitShell directly from the Chrome Web Store — no setup required:
 
-👉 **[Install on the Chrome Web Store](https://chromewebstore.google.com/detail/ekccllhkobdjemdinnbdopagcdjglohf?utm_source=item-share-cb)** 
+👉 **[Install on the Chrome Web Store](https://chromewebstore.google.com/detail/ekccllhkobdjemdinnbdopagcdjglohf?utm_source=item-share-cb)**
 
 Once installed, click the BitShell icon in your toolbar or right-click selected text on any page to get started.
 
@@ -114,7 +131,8 @@ BitShell will appear in your extensions list and toolbar.
 2. Select your input format using the type buttons (Binary, Hex, Decimal, Text, Base64)
 3. Type or paste your value — all outputs update instantly
 4. Click any output field to **copy** that result, or use **Copy All**
-5. To convert selected text from a webpage, **highlight it**, right-click, and choose **BitShell**
+5. To calculate a subnet, type any IPv4 address in CIDR notation (e.g. `192.168.1.0/24`) — BitShell detects it automatically and shows the full breakdown
+6. To convert selected text from a webpage, **highlight it**, right-click, and choose **BitShell**
 
 ---
 
